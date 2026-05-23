@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if product.id else 'New' }} product{% endblock %}
+{% block content %}
+<h1>{{ 'Edit' if product.id else 'New' }} finished product</h1>
+
+<form method="post" class="form">
+  <label>SKU *
+    <input type="text" name="sku" value="{{ product.sku or '' }}" required>
+  </label>
+  <label>Name *
+    <input type="text" name="name" value="{{ product.name or '' }}" required>
+  </label>
+  <label>Unit * <small>(e.g. pieces, kg, boxes)</small>
+    <input type="text" name="unit" value="{{ product.unit or '' }}" required>
+  </label>
+  <label>Current stock
+    <input type="number" name="current_stock" step="any" value="{{ product.current_stock or 0 }}">
+  </label>
+  <label>Unit price
+    <input type="number" name="unit_price" step="0.01" value="{{ product.unit_price or 0 }}">
+  </label>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a class="btn" href="{{ url_for('products_list') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

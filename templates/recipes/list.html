@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Recipes{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Recipes</h1>
+  <a class="btn btn-primary" href="{{ url_for('recipes_new') }}">+ New recipe</a>
+</div>
+
+{% if recipes %}
+<table>
+  <thead><tr><th>Name</th><th>Produces</th><th class="num">Output / batch</th><th class="num">Ingredients</th><th></th></tr></thead>
+  <tbody>
+    {% for r in recipes %}
+      <tr>
+        <td><a href="{{ url_for('recipes_detail', recipe_id=r.id) }}">{{ r.name }}</a></td>
+        <td>{{ r.product.name }}</td>
+        <td class="num">{{ '%g'|format(r.output_quantity) }} {{ r.product.unit }}</td>
+        <td class="num">{{ r.items|length }}</td>
+        <td>
+          <form method="post" action="{{ url_for('recipes_delete', recipe_id=r.id) }}" onsubmit="return confirm('Delete this recipe?');">
+            <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No recipes yet.</p>
+{% endif %}
+{% endblock %}

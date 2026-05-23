@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}PO {{ po.po_number }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>PO {{ po.po_number }} <span class="badge badge-{{ po.status }}">{{ po.status }}</span></h1>
+  <a class="btn" href="{{ url_for('purchases_list') }}">← Back to POs</a>
+</div>
+
+<section>
+  <h2>Header</h2>
+  {% if po.status == 'draft' %}
+  <form method="post" class="form">
+    <label>Supplier *
+      <select name="supplier_id" required>
+        {% for s in suppliers %}
+          <option value="{{ s.id }}" {{ 'selected' if s.id == po.supplier_id }}>{{ s.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Order date
+      <input type="date" name="order_date" value="{{ po.order_date.isoformat() if po.order_date else '' }}">
+    </label>
+    <label>Expected date
+      <input type="date" name="expected_date" value="{{ po.expected_date.isoformat() if po.expected_date else '' }}">
+    </label>
+    <label>Notes
+      <textarea name="notes" rows="3">{{ po.notes or '' }}</textarea>
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Save header</button>
+    </div>
+  </form>
+  {% else %}
+  <div class="kv">
+    <div><strong>Supplier:</strong> {{ po.supplier.name }}</div>
+    <div><strong>Order date:</strong> {{ po.order_date.strftime('%Y-%m-%d') if po.order_date else '—' }}</div>
+    <div><strong>Expected:</strong> {{ po.expected_date.strftime('%Y-%m-%d') if po.expected_date else '—' }}</div>
+    <div><strong>Received:</strong> {{ po.received_date.strftime('%Y-%m-%d') if po.received_date else '—' }}</div>
+    {% if po.notes %}<div class="full"><strong>Notes:</strong> {{ po.notes }}</div>{% endif %}
+  </div>
+  {% endif %}
+</section>
+
+<section>
+  <h2>Line items</h2>
+  {% if po.items %}
+  <table>
+    <thead>
+      <tr><th>Material</th><th class="num">Quantity</th><th>Unit</th><th class="num">Unit cost</th><th class="num">Line total</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for item in po.items %}
+        <tr>
+          <td>{{ item.raw_material.name }}</td>
+          <td class="num">{{ '%g'|format(item.quantity) }}</td>
+          <td>{{ item.raw_material.unit }}</td>
+          <td class="num">${{ '%.2f'|format(item.unit_cost) }}</td>
+          <td class="num">${{ '%.2f'|format(item.quantity * item.unit_cost) }}</td>
+          <td>
+            {% if po.status == 'draft' %}
+            <form method="post" action="{{ url_for('purchases_remove_item', po_id=po.id, item_id=item.id) }}">
+              <button class="btn btn-danger btn-sm" type="submit">Remove</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      <tr class="total-row">
+        <td colspan="4" class="num"><strong>Total</strong></td>
+        <td class="num"><strong>${{ '%.2f'|format(po.total) }}</strong></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No line items.</p>
+  {% endif %}
+
+  {% if po.status == 'draft' %}
+    {% if materials %}
+    <form method="post" action="{{ url_for('purchases_add_item', po_id=po.id) }}" class="form-inline">
+      <select name="raw_material_id" required>
+        <option value="">— add material —</option>
+        {% for m in materials %}
+          <option value="{{ m.id }}" data-cost="{{ m.unit_cost }}">{{ m.name }} ({{ m.unit }})</option>
+        {% endfor %}
+      </select>
+      <input type="number" name="quantity" step="any" min="0.0001" placeholder="Quantity" required>
+      <input type="number" name="unit_cost" step="0.01" min="0" placeholder="Unit cost" required>
+      <button class="btn btn-primary" type="submit">Add</button>
+    </form>
+    {% else %}
+    <p class="muted">Add raw materials before adding line items.</p>
+    {% endif %}
+  {% endif %}
+</section>
+
+<section class="actions-bar">
+  {% if po.status == 'draft' %}
+    <form method="post" action="{{ url_for('purchases_place', po_id=po.id) }}">
+      <button class="btn btn-primary" type="submit">Place order</button>
+    </form>
+  {% endif %}
+  {% if po.status == 'ordered' %}
+    <form method="post" action="{{ url_for('purchases_receive', po_id=po.id) }}">
+      <button class="btn btn-success" type="submit">Receive &amp; post stock</button>
+    </form>
+  {% endif %}
+  {% if po.status in ('draft', 'ordered') %}
+    <form method="post" action="{{ url_for('purchases_cancel', po_id=po.id) }}" onsubmit="return confirm('Cancel this PO?');">
+      <button class="btn btn-danger" type="submit">Cancel</button>
+    </form>
+  {% endif %}
+  {% if po.status != 'received' %}
+    <form method="post" action="{{ url_for('purchases_delete', po_id=po.id) }}" onsubmit="return confirm('Delete this PO?');">
+      <button class="btn btn-danger" type="submit">Delete</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

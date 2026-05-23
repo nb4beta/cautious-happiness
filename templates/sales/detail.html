@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}SO {{ so.so_number }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>SO {{ so.so_number }} <span class="badge badge-{{ so.status }}">{{ so.status }}</span></h1>
+  <a class="btn" href="{{ url_for('sales_list') }}">← Back to SOs</a>
+</div>
+
+<section>
+  <h2>Header</h2>
+  {% if so.status == 'draft' %}
+  <form method="post" class="form">
+    <label>Customer *
+      <select name="customer_id" required>
+        {% for c in customers %}
+          <option value="{{ c.id }}" {{ 'selected' if c.id == so.customer_id }}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Order date
+      <input type="date" name="order_date" value="{{ so.order_date.isoformat() if so.order_date else '' }}">
+    </label>
+    <label>Notes
+      <textarea name="notes" rows="3">{{ so.notes or '' }}</textarea>
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Save header</button>
+    </div>
+  </form>
+  {% else %}
+  <div class="kv">
+    <div><strong>Customer:</strong> {{ so.customer.name }}</div>
+    <div><strong>Order date:</strong> {{ so.order_date.strftime('%Y-%m-%d') if so.order_date else '—' }}</div>
+    <div><strong>Shipped:</strong> {{ so.shipped_date.strftime('%Y-%m-%d') if so.shipped_date else '—' }}</div>
+    {% if so.notes %}<div class="full"><strong>Notes:</strong> {{ so.notes }}</div>{% endif %}
+  </div>
+  {% endif %}
+</section>
+
+<section>
+  <h2>Line items</h2>
+  {% if so.items %}
+  <table>
+    <thead>
+      <tr><th>Product</th><th class="num">Quantity</th><th>Unit</th><th class="num">Unit price</th><th class="num">Line total</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for item in so.items %}
+        <tr>
+          <td>{{ item.finished_product.name }}</td>
+          <td class="num">{{ '%g'|format(item.quantity) }}</td>
+          <td>{{ item.finished_product.unit }}</td>
+          <td class="num">${{ '%.2f'|format(item.unit_price) }}</td>
+          <td class="num">${{ '%.2f'|format(item.quantity * item.unit_price) }}</td>
+          <td>
+            {% if so.status == 'draft' %}
+            <form method="post" action="{{ url_for('sales_remove_item', so_id=so.id, item_id=item.id) }}">
+              <button class="btn btn-danger btn-sm" type="submit">Remove</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      <tr class="total-row">
+        <td colspan="4" class="num"><strong>Total</strong></td>
+        <td class="num"><strong>${{ '%.2f'|format(so.total) }}</strong></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No line items.</p>
+  {% endif %}
+
+  {% if so.status == 'draft' %}
+    {% if products %}
+    <form method="post" action="{{ url_for('sales_add_item', so_id=so.id) }}" class="form-inline">
+      <select name="finished_product_id" required>
+        <option value="">— add product —</option>
+        {% for p in products %}
+          <option value="{{ p.id }}">{{ p.name }} ({{ p.unit }})</option>
+        {% endfor %}
+      </select>
+      <input type="number" name="quantity" step="any" min="0.0001" placeholder="Quantity" required>
+      <input type="number" name="unit_price" step="0.01" min="0" placeholder="Unit price" required>
+      <button class="btn btn-primary" type="submit">Add</button>
+    </form>
+    {% else %}
+    <p class="muted">Add finished products before adding line items.</p>
+    {% endif %}
+  {% endif %}
+</section>
+
+<section class="actions-bar">
+  {% if so.status == 'draft' %}
+    <form method="post" action="{{ url_for('sales_confirm', so_id=so.id) }}">
+      <button class="btn btn-primary" type="submit">Confirm order</button>
+    </form>
+  {% endif %}
+  {% if so.status == 'confirmed' %}
+    <form method="post" action="{{ url_for('sales_ship', so_id=so.id) }}">
+      <button class="btn btn-success" type="submit">Ship &amp; post inventory</button>
+    </form>
+  {% endif %}
+  {% if so.status in ('draft', 'confirmed') %}
+    <form method="post" action="{{ url_for('sales_cancel', so_id=so.id) }}" onsubmit="return confirm('Cancel this SO?');">
+      <button class="btn btn-danger" type="submit">Cancel</button>
+    </form>
+  {% endif %}
+  {% if so.status != 'shipped' %}
+    <form method="post" action="{{ url_for('sales_delete', so_id=so.id) }}" onsubmit="return confirm('Delete this SO?');">
+      <button class="btn btn-danger" type="submit">Delete</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

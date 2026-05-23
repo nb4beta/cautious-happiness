@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Purchase orders{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Purchase orders</h1>
+  <a class="btn btn-primary" href="{{ url_for('purchases_new') }}">+ New PO</a>
+</div>
+
+{% if pos %}
+<table>
+  <thead>
+    <tr>
+      <th>PO #</th><th>Supplier</th><th>Order date</th>
+      <th>Expected</th><th>Status</th><th class="num">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in pos %}
+      <tr>
+        <td><a href="{{ url_for('purchases_detail', po_id=p.id) }}">{{ p.po_number }}</a></td>
+        <td>{{ p.supplier.name }}</td>
+        <td>{{ p.order_date.strftime('%Y-%m-%d') if p.order_date else '—' }}</td>
+        <td>{{ p.expected_date.strftime('%Y-%m-%d') if p.expected_date else '—' }}</td>
+        <td><span class="badge badge-{{ p.status }}">{{ p.status }}</span></td>
+        <td class="num">${{ '%.2f'|format(p.total) }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No purchase orders yet.</p>
+{% endif %}
+{% endblock %}

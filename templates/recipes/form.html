@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}New recipe{% endblock %}
+{% block content %}
+<h1>New recipe</h1>
+
+{% if not products %}
+<p class="muted">You need at least one finished product before creating a recipe.
+  <a href="{{ url_for('products_edit') }}">Add one now</a>.
+</p>
+{% else %}
+<form method="post" class="form">
+  <label>Name *
+    <input type="text" name="name" required>
+  </label>
+  <label>Finished product *
+    <select name="product_id" required>
+      <option value="">— select —</option>
+      {% for p in products %}
+        <option value="{{ p.id }}">{{ p.name }} ({{ p.unit }})</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Output quantity per batch *
+    <input type="number" name="output_quantity" step="any" min="0.0001" required>
+  </label>
+  <label>Notes
+    <textarea name="notes" rows="3"></textarea>
+  </label>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Create recipe</button>
+    <a class="btn" href="{{ url_for('recipes_list') }}">Cancel</a>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

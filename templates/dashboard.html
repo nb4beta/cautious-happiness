@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – Candy ERP{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="cards">
+  <div class="card"><span class="card-num">{{ stats.raw_materials }}</span><span class="card-label">Raw materials</span></div>
+  <div class="card"><span class="card-num">{{ stats.finished_products }}</span><span class="card-label">Finished products</span></div>
+  <div class="card"><span class="card-num">{{ stats.recipes }}</span><span class="card-label">Recipes</span></div>
+  <div class="card"><span class="card-num">{{ stats.open_batches }}</span><span class="card-label">Open batches</span></div>
+  <div class="card"><span class="card-num">{{ stats.open_sales }}</span><span class="card-label">Open sales orders</span></div>
+  <div class="card"><span class="card-num">{{ stats.open_purchases }}</span><span class="card-label">Open purchase orders</span></div>
+  <div class="card"><span class="card-num">{{ stats.suppliers }}</span><span class="card-label">Suppliers</span></div>
+  <div class="card"><span class="card-num">{{ stats.customers }}</span><span class="card-label">Customers</span></div>
+</div>
+
+<section>
+  <h2>Low stock alerts</h2>
+  {% if low_stock %}
+    <table>
+      <thead><tr><th>SKU</th><th>Material</th><th>On hand</th><th>Reorder at</th><th>Unit</th></tr></thead>
+      <tbody>
+        {% for m in low_stock %}
+          <tr>
+            <td>{{ m.sku }}</td>
+            <td><a href="{{ url_for('raw_materials_edit', material_id=m.id) }}">{{ m.name }}</a></td>
+            <td class="warn">{{ '%g'|format(m.current_stock) }}</td>
+            <td>{{ '%g'|format(m.reorder_level) }}</td>
+            <td>{{ m.unit }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No raw materials below reorder level.</p>
+  {% endif %}
+</section>
+
+<div class="two-col">
+  <section>
+    <h2>Recent production batches</h2>
+    {% if recent_batches %}
+      <ul class="plain">
+        {% for b in recent_batches %}
+          <li>
+            <a href="{{ url_for('production_detail', batch_id=b.id) }}">{{ b.batch_code }}</a>
+            – {{ b.recipe.name }}
+            <span class="badge badge-{{ b.status }}">{{ b.status }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No production batches yet.</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2>Recent sales orders</h2>
+    {% if recent_sales %}
+      <ul class="plain">
+        {% for s in recent_sales %}
+          <li>
+            <a href="{{ url_for('sales_detail', so_id=s.id) }}">{{ s.so_number }}</a>
+            – {{ s.customer.name }}
+            <span class="badge badge-{{ s.status }}">{{ s.status }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No sales orders yet.</p>
+    {% endif %}
+  </section>
+</div>
+
+<section>
+  <h2>Recent purchase orders</h2>
+  {% if recent_purchases %}
+    <ul class="plain">
+      {% for p in recent_purchases %}
+        <li>
+          <a href="{{ url_for('purchases_detail', po_id=p.id) }}">{{ p.po_number }}</a>
+          – {{ p.supplier.name }}
+          <span class="badge badge-{{ p.status }}">{{ p.status }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">No purchase orders yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

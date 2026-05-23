@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}New purchase order{% endblock %}
+{% block content %}
+<h1>New purchase order</h1>
+
+{% if not suppliers %}
+<p class="muted">Add at least one supplier first.
+  <a href="{{ url_for('suppliers_edit') }}">Add supplier</a>.
+</p>
+{% else %}
+<form method="post" class="form">
+  <label>PO number *
+    <input type="text" name="po_number" required>
+  </label>
+  <label>Supplier *
+    <select name="supplier_id" required>
+      <option value="">— select —</option>
+      {% for s in suppliers %}
+        <option value="{{ s.id }}">{{ s.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Order date
+    <input type="date" name="order_date">
+  </label>
+  <label>Expected date
+    <input type="date" name="expected_date">
+  </label>
+  <label>Notes
+    <textarea name="notes" rows="3"></textarea>
+  </label>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Create PO</button>
+    <a class="btn" href="{{ url_for('purchases_list') }}">Cancel</a>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

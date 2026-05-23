@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Batch {{ batch.batch_code }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Batch {{ batch.batch_code }} <span class="badge badge-{{ batch.status }}">{{ batch.status }}</span></h1>
+  <a class="btn" href="{{ url_for('production_list') }}">← Back to batches</a>
+</div>
+
+<section class="kv">
+  <div><strong>Recipe:</strong> {{ batch.recipe.name }}</div>
+  <div><strong>Produces:</strong> {{ batch.recipe.product.name }}</div>
+  <div><strong>Planned:</strong> {{ '%g'|format(batch.planned_quantity) }} {{ batch.recipe.product.unit }}</div>
+  <div><strong>Actual:</strong>
+    {{ '%g'|format(batch.actual_quantity) ~ ' ' ~ batch.recipe.product.unit if batch.actual_quantity is not none else '—' }}
+  </div>
+  <div><strong>Started:</strong> {{ batch.start_date.strftime('%Y-%m-%d %H:%M') if batch.start_date else '—' }}</div>
+  <div><strong>Finished:</strong> {{ batch.end_date.strftime('%Y-%m-%d %H:%M') if batch.end_date else '—' }}</div>
+  {% if batch.notes %}<div class="full"><strong>Notes:</strong> {{ batch.notes }}</div>{% endif %}
+</section>
+
+<section>
+  <h2>Material requirements</h2>
+  {% if required %}
+  <table>
+    <thead><tr><th>Material</th><th class="num">Needed</th><th class="num">On hand</th><th>Unit</th></tr></thead>
+    <tbody>
+      {% for row in required %}
+        <tr class="{{ 'row-warn' if row.available < row.needed else '' }}">
+          <td>{{ row.material.name }}</td>
+          <td class="num">{{ '%g'|format(row.needed) }}</td>
+          <td class="num">{{ '%g'|format(row.available) }}</td>
+          <td>{{ row.material.unit }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">This recipe has no ingredients defined.</p>
+  {% endif %}
+</section>
+
+<section class="actions-bar">
+  {% if batch.status == 'planned' %}
+    <form method="post" action="{{ url_for('production_start', batch_id=batch.id) }}">
+      <button class="btn btn-primary" type="submit">Start batch</button>
+    </form>
+  {% endif %}
+
+  {% if batch.status in ('planned', 'in_progress') %}
+    <form method="post" action="{{ url_for('production_complete', batch_id=batch.id) }}" class="form-inline">
+      <label>Actual produced
+        <input type="number" name="actual_quantity" step="any" min="0.0001" value="{{ batch.planned_quantity }}" required>
+      </label>
+      <button class="btn btn-success" type="submit">Complete &amp; post inventory</button>
+    </form>
+
+    <form method="post" action="{{ url_for('production_cancel', batch_id=batch.id) }}" onsubmit="return confirm('Cancel this batch?');">
+      <button class="btn btn-danger" type="submit">Cancel batch</button>
+    </form>
+  {% endif %}
+
+  {% if batch.status != 'completed' %}
+    <form method="post" action="{{ url_for('production_delete', batch_id=batch.id) }}" onsubmit="return confirm('Delete this batch?');">
+      <button class="btn btn-danger" type="submit">Delete</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

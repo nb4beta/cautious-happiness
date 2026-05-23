@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}New sales order{% endblock %}
+{% block content %}
+<h1>New sales order</h1>
+
+{% if not customers %}
+<p class="muted">Add at least one customer first.
+  <a href="{{ url_for('customers_edit') }}">Add customer</a>.
+</p>
+{% else %}
+<form method="post" class="form">
+  <label>SO number *
+    <input type="text" name="so_number" required>
+  </label>
+  <label>Customer *
+    <select name="customer_id" required>
+      <option value="">— select —</option>
+      {% for c in customers %}
+        <option value="{{ c.id }}">{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Order date
+    <input type="date" name="order_date">
+  </label>
+  <label>Notes
+    <textarea name="notes" rows="3"></textarea>
+  </label>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Create SO</button>
+    <a class="btn" href="{{ url_for('sales_list') }}">Cancel</a>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

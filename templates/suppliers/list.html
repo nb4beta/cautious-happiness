@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Suppliers{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Suppliers</h1>
+  <a class="btn btn-primary" href="{{ url_for('suppliers_edit') }}">+ New supplier</a>
+</div>
+
+{% if suppliers %}
+<table>
+  <thead><tr><th>Name</th><th>Contact</th><th>Email</th><th>Phone</th><th></th></tr></thead>
+  <tbody>
+    {% for s in suppliers %}
+      <tr>
+        <td><a href="{{ url_for('suppliers_edit', supplier_id=s.id) }}">{{ s.name }}</a></td>
+        <td>{{ s.contact_name or '—' }}</td>
+        <td>{{ s.email or '—' }}</td>
+        <td>{{ s.phone or '—' }}</td>
+        <td>
+          <form method="post" action="{{ url_for('suppliers_delete', supplier_id=s.id) }}" onsubmit="return confirm('Delete this supplier?');">
+            <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No suppliers yet.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ recipe.name }} – Recipe{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>{{ recipe.name }}</h1>
+  <a class="btn" href="{{ url_for('recipes_list') }}">← Back to recipes</a>
+</div>
+
+<section>
+  <h2>Recipe details</h2>
+  <form method="post" class="form">
+    <label>Name *
+      <input type="text" name="name" value="{{ recipe.name }}" required>
+    </label>
+    <label>Finished product *
+      <select name="product_id" required>
+        {% for p in products %}
+          <option value="{{ p.id }}" {{ 'selected' if p.id == recipe.product_id }}>
+            {{ p.name }} ({{ p.unit }})
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Output quantity per batch *
+      <input type="number" name="output_quantity" step="any" min="0.0001" value="{{ recipe.output_quantity }}" required>
+    </label>
+    <label>Notes
+      <textarea name="notes" rows="3">{{ recipe.notes or '' }}</textarea>
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Save changes</button>
+    </div>
+  </form>
+</section>
+
+<section>
+  <h2>Ingredients (per batch of {{ '%g'|format(recipe.output_quantity) }} {{ recipe.product.unit }})</h2>
+  {% if recipe.items %}
+  <table>
+    <thead><tr><th>Material</th><th class="num">Quantity</th><th>Unit</th><th></th></tr></thead>
+    <tbody>
+      {% for item in recipe.items %}
+        <tr>
+          <td>{{ item.raw_material.name }}</td>
+          <td class="num">{{ '%g'|format(item.quantity) }}</td>
+          <td>{{ item.raw_material.unit }}</td>
+          <td>
+            <form method="post" action="{{ url_for('recipes_remove_item', recipe_id=recipe.id, item_id=item.id) }}">
+              <button class="btn btn-danger btn-sm" type="submit">Remove</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No ingredients yet.</p>
+  {% endif %}
+
+  {% if materials %}
+  <form method="post" action="{{ url_for('recipes_add_item', recipe_id=recipe.id) }}" class="form-inline">
+    <select name="raw_material_id" required>
+      <option value="">— add ingredient —</option>
+      {% for m in materials %}
+        <option value="{{ m.id }}">{{ m.name }} ({{ m.unit }})</option>
+      {% endfor %}
+    </select>
+    <input type="number" name="quantity" step="any" min="0.0001" placeholder="Quantity" required>
+    <button class="btn btn-primary" type="submit">Add</button>
+  </form>
+  {% else %}
+  <p class="muted">Add raw materials before adding ingredients.</p>
+  {% endif %}
+</section>
+{% endblock %}

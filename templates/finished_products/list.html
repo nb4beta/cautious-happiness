@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Finished products{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Finished products</h1>
+  <a class="btn btn-primary" href="{{ url_for('products_edit') }}">+ New product</a>
+</div>
+
+{% if products %}
+<table>
+  <thead>
+    <tr>
+      <th>SKU</th><th>Name</th><th>Unit</th>
+      <th class="num">On hand</th><th class="num">Unit price</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in products %}
+      <tr>
+        <td>{{ p.sku }}</td>
+        <td><a href="{{ url_for('products_edit', product_id=p.id) }}">{{ p.name }}</a></td>
+        <td>{{ p.unit }}</td>
+        <td class="num">{{ '%g'|format(p.current_stock) }}</td>
+        <td class="num">${{ '%.2f'|format(p.unit_price) }}</td>
+        <td>
+          <form method="post" action="{{ url_for('products_delete', product_id=p.id) }}" onsubmit="return confirm('Delete this product?');">
+            <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No finished products yet.</p>
+{% endif %}
+{% endblock %}

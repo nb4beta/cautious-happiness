@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}New batch{% endblock %}
+{% block content %}
+<h1>New production batch</h1>
+
+{% if not recipes %}
+<p class="muted">You need at least one recipe before creating a batch.
+  <a href="{{ url_for('recipes_new') }}">Create one now</a>.
+</p>
+{% else %}
+<form method="post" class="form">
+  <label>Batch code *
+    <input type="text" name="batch_code" required>
+  </label>
+  <label>Recipe *
+    <select name="recipe_id" required>
+      <option value="">— select —</option>
+      {% for r in recipes %}
+        <option value="{{ r.id }}">{{ r.name }} (produces {{ r.product.name }})</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Planned quantity *
+    <input type="number" name="planned_quantity" step="any" min="0.0001" required>
+  </label>
+  <label>Notes
+    <textarea name="notes" rows="3"></textarea>
+  </label>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Create batch</button>
+    <a class="btn" href="{{ url_for('production_list') }}">Cancel</a>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

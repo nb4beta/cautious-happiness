@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Production batches{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Production batches</h1>
+  <a class="btn btn-primary" href="{{ url_for('production_new') }}">+ New batch</a>
+</div>
+
+{% if batches %}
+<table>
+  <thead>
+    <tr>
+      <th>Batch code</th><th>Recipe</th>
+      <th class="num">Planned</th><th class="num">Actual</th>
+      <th>Status</th><th>Started</th><th>Finished</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for b in batches %}
+      <tr>
+        <td><a href="{{ url_for('production_detail', batch_id=b.id) }}">{{ b.batch_code }}</a></td>
+        <td>{{ b.recipe.name }}</td>
+        <td class="num">{{ '%g'|format(b.planned_quantity) }}</td>
+        <td class="num">{{ '%g'|format(b.actual_quantity) if b.actual_quantity is not none else '—' }}</td>
+        <td><span class="badge badge-{{ b.status }}">{{ b.status }}</span></td>
+        <td>{{ b.start_date.strftime('%Y-%m-%d %H:%M') if b.start_date else '—' }}</td>
+        <td>{{ b.end_date.strftime('%Y-%m-%d %H:%M') if b.end_date else '—' }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No production batches yet.</p>
+{% endif %}
+{% endblock %}

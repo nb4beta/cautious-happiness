@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Candy ERP{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><a href="{{ url_for('dashboard') }}">Candy ERP</a></div>
+    <nav class="primary-nav">
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('raw_materials_list') }}">Raw Materials</a>
+      <a href="{{ url_for('products_list') }}">Products</a>
+      <a href="{{ url_for('recipes_list') }}">Recipes</a>
+      <a href="{{ url_for('production_list') }}">Production</a>
+      <a href="{{ url_for('purchases_list') }}">Purchasing</a>
+      <a href="{{ url_for('sales_list') }}">Sales</a>
+      <a href="{{ url_for('suppliers_list') }}">Suppliers</a>
+      <a href="{{ url_for('customers_list') }}">Customers</a>
+    </nav>
+  </header>
+
+  <main class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashes">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
